@@ -67,12 +67,43 @@ void open_app(std::string name)
     {
         if (application.name == name)
         {
-            std::cout << "FOUND: " << application.name << '\n';
-            std::cout << "EXEC: " << application.exec << '\n';
+            std::cout << "Start: " << application.name << '\n';
 
             std::system(application.exec.c_str());
             return;
         }
     }
     std::cout << "Not find a " << name << "!\n";
+}
+
+std::string to_lower(std::string text)
+{
+    for(char& c : text)
+    {
+        c = std::tolower(c);
+    }
+
+    return text;
+}
+
+void search_app(std::string query)
+{
+    std::size_t found_count = 0;
+
+    std::string low_que = to_lower(query);
+
+    for (const auto& application : applications)
+    {
+        std::string name_lower = to_lower(application.name);
+        std::size_t found = name_lower.find(low_que);
+
+        if(found != std::string::npos)
+        {
+            std::cout << "Found: " << application.name << '\n';
+            ++found_count;
+        }
+    }
+
+    if(found_count == 0)
+        std::cout << "No applications found.\n";
 }

@@ -16,4 +16,10 @@ int main(int argc, char* argv[])
 
         open_app(name);
     }
+    else if(argc > 2 && std::string(argv[1]) == "--search")
+    {
+        std::string query = argv[2];
+
+        search_app(query);
+    }
 }

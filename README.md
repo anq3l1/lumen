@@ -2,6 +2,8 @@
 
 **Lumen** is a Linux application launcher and usage tracker written in C++.
 
+**[Версия на русском языке](README_RU.md)**
+
 The goal of Lumen is to provide a fast, customizable launcher with application usage statistics, session tracking and a modern graphical interface.
 
 > 🚧 **Early development** — Lumen is currently a CLI prototype. The GUI and usage tracking are planned for future releases.
@@ -18,13 +20,10 @@ The goal of Lumen is to provide a fast, customizable launcher with application u
 * [x] List detected applications
 * [x] Find an application by name
 * [x] Launch applications from the launcher
+* [x] Application search
 
 ### Planned
 
-* [ ] Proper `.desktop` file parsing
-* [ ] Support for `Exec=` field codes (`%f`, `%F`, `%u`, `%U`, etc.)
-* [ ] Better application detection
-* [ ] Application search
 * [ ] Application categories
 * [ ] Graphical user interface
 * [ ] Application icons
