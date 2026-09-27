@@ -1,18 +1,22 @@
 #pragma once
 
 #include <string>
+#include <vector>
+#include <filesystem>
 
-/**
- * Application Launcher — handlers
- *
- * Provides the main interface for working with installed
- * applications: loading, listing, searching and launching.
- *
- * Currently intended for terminal/console usage.
- * The interface is designed to be reusable for a future GUI.
- */
+struct Application
+{
+    std::string name;
+    std::string exec;
+    std::string icon;
+
+    std::filesystem::path desktop_file;
+};
+
+extern std::vector<Application> applications;
 
 void load_app();
 void list_app();
 void open_app(std::string name);
 void search_app(std::string query);
+std::string to_lower(std::string text);

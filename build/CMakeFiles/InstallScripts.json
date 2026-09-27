@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/angel/vscode/lumen/lumen/build/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

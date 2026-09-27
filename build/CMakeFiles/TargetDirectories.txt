@@ -1,0 +1,5 @@
+/home/angel/vscode/lumen/lumen/build/CMakeFiles/lumen.dir
+/home/angel/vscode/lumen/lumen/build/CMakeFiles/edit_cache.dir
+/home/angel/vscode/lumen/lumen/build/CMakeFiles/rebuild_cache.dir
+/home/angel/vscode/lumen/lumen/build/CMakeFiles/lumen_autogen_timestamp_deps.dir
+/home/angel/vscode/lumen/lumen/build/CMakeFiles/lumen_autogen.dir

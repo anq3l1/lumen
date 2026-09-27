@@ -1,0 +1,3 @@
+# Hashes of file build rules.
+540f5fad72979a2688f705cba0c28897 CMakeFiles/lumen_autogen
+9f9a591c0d0fcac13af93a7295f9c7a9 lumen_autogen/timestamp
