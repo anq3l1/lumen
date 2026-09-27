@@ -1,1 +1,0 @@
-/usr/bin/c++ -Wl,--dependency-file=CMakeFiles/lumen.dir/link.d CMakeFiles/lumen.dir/lumen_autogen/mocs_compilation.cpp.o CMakeFiles/lumen.dir/src/main.cpp.o CMakeFiles/lumen.dir/src/handlers.cpp.o CMakeFiles/lumen.dir/src/gui.cpp.o -o lumen  /usr/lib/libQt6Widgets.so.6.11.2 /usr/lib/libQt6Gui.so.6.11.2 /usr/lib/libGLX.so /usr/lib/libOpenGL.so /usr/lib/libQt6Core.so.6.11.2
