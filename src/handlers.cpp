@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <unistd.h>
 #include <sys/wait.h>
+#include "stats.hpp"
 
 namespace fs = std::filesystem;
 
@@ -64,6 +65,7 @@ void load_app()
                 if (line.rfind("Name=", 0) == 0)
                 {
                     application.name = line.substr(5);
+                    
                 }
                 else if (line.rfind("Exec=", 0) == 0)
                 {
@@ -83,6 +85,8 @@ void load_app()
             application.desktop_file = entry.path();
 
             applications.push_back(application);
+
+            addInJson(application.exec, application.name);
         }
     }
 }
@@ -185,8 +189,6 @@ void open_app(std::string name)
     {
         if (application.name == name)
         {
-            std::cout << "Start: " << application.name << '\n';
-
             std::string exec = clean_exec(application.exec);
 
             std::vector<std::string> arguments = split_command(exec);
@@ -224,6 +226,8 @@ void open_app(std::string name)
             return;
         }
     }
+
+    
 
     std::cout << "Not find a " << name << "!\n";
 }

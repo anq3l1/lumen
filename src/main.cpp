@@ -1,29 +1,26 @@
 #include <iostream>
 #include <fstream>
 #include <filesystem>
+#include <thread>
 
 #include "handlers.hpp"
-#include "gui.hpp"
+#include "processmanager.hpp"
 
 int main(int argc, char* argv[])
 {
-    if (argc == 1)
-        return run_gui(argc, argv);
-
-    load_app();
-
-    if(argc > 1 && std::string(argv[1]) == "--list")
-        list_app();
-    else if(argc > 2 && std::string(argv[1]) == "--open")
+    if (argc > 1 && std::string(argv[1]) == "--processmanager")
     {
-        std::string name = argv[2];
-
-        open_app(name);
+        ProcessManager();
     }
-    else if(argc > 2 && std::string(argv[1]) == "--search")
+    else
     {
-        std::string query = argv[2];
+        load_app();
 
-        search_app(query);
+        if (argc > 1 && std::string(argv[1]) == "--list")
+            list_app();
+        else if (argc > 2 && std::string(argv[1]) == "--open")
+            open_app(argv[2]);
+        else if (argc > 2 && std::string(argv[1]) == "--search")
+            search_app(argv[2]);
     }
 }
