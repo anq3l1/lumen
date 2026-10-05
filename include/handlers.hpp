@@ -9,6 +9,7 @@ struct Application
     std::string name;
     std::string exec;
     std::string icon;
+    int time;
 
     std::filesystem::path desktop_file;
 };

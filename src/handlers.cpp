@@ -84,9 +84,11 @@ void load_app()
 
             application.desktop_file = entry.path();
 
-            applications.push_back(application);
-
             addInJson(application.exec, application.name);
+
+            application.time = readTimeFromStatistic(application.name);
+
+            applications.push_back(application);
         }
     }
 }
@@ -96,7 +98,7 @@ void list_app()
 {
     for (const auto& application : applications)
     {
-        std::cout << application.name << '\n';
+        std::cout << application.name << " time: " << application.time << " s."<<'\n';
     }
 }
 
