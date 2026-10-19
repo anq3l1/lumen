@@ -83,7 +83,6 @@ int ProcessManager()
 
         for (const auto& [pid, name] : processes)
         {
-            // Do not count Lumen's GUI/monitor itself as application usage.
             if (pid == own_pid || name == "lumen")
                 continue;
             unique_names.insert(name);
