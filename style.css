@@ -1,0 +1,85 @@
+window {
+    background-color: #000000;
+    color: #dedee5;
+    font-family: "Inter", sans-serif;
+}
+
+.main-window {
+    background-color: #000000;
+}
+
+.sidebar {
+    background-color: #000000;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-heading {
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.app-search {
+    color: #f0f0f5;
+    background-color: #000000;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 9px;
+    margin-bottom: 6px;
+}
+
+.app-search:focus {
+    border-color: rgba(170, 170, 255, 0.65);
+}
+
+scrolledwindow,
+.app-list {
+    background-color: #000000;
+}
+
+.app-list {
+    border: none;
+    background-color: #000000;
+}
+
+.app-button {
+    color: #ddddE5;
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    padding: 8px;
+    margin: 2px 0;
+}
+
+.app-button:hover {
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.10);
+}
+
+.app-button:active {
+    background-color: rgba(255, 255, 255, 0.16);
+}
+
+.app-button:focus-visible {
+    outline: 2px solid rgba(170, 170, 255, 0.8);
+    outline-offset: -2px;
+}
+
+.content {
+    background-color: #000000;
+}
+
+.page-title {
+    color: #ffffff;
+    font-size: 30px;
+    font-weight: 700;
+}
+
+.detail-label {
+    color: #bdbdc8;
+    font-size: 14px;
+}
+
+label {
+    color: #dedee5;
+}

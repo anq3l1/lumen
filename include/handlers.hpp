@@ -1,16 +1,16 @@
 #pragma once
 
+#include <filesystem>
 #include <string>
 #include <vector>
-#include <filesystem>
 
 struct Application
 {
     std::string name;
     std::string exec;
     std::string icon;
-    int time;
-
+    std::string category;
+    int time = 0;
     std::filesystem::path desktop_file;
 };
 

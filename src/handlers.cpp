@@ -1,273 +1,278 @@
 #include "handlers.hpp"
-
-#include <iostream>
-#include <fstream>
-#include <filesystem>
-#include <vector>
-#include <string>
-#include <cstdlib>
-#include <cctype>
-#include <algorithm>
-#include <unistd.h>
-#include <sys/wait.h>
 #include "stats.hpp"
+
+#include <algorithm>
+#include <cctype>
+#include <cstdlib>
+#include <cstdio>
+#include <utility>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <set>
+#include <string>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#include <vector>
 
 namespace fs = std::filesystem;
 
 std::vector<Application> applications;
 
-
-void load_app()
+namespace
 {
-    const char* home = std::getenv("HOME");
-
-    if (home == nullptr)
-    {
-        std::cerr << "HOME environment variable not found.\n";
-        return;
-    }
-
-    std::vector<fs::path> directories = {
-        "/usr/share/applications",
-        "/usr/local/share/applications",
-        fs::path(home) / ".local/share/applications"
-    };
-
-    for (const auto& directory : directories)
-    {
-        if (!fs::exists(directory) || !fs::is_directory(directory))
-            continue;
-
-        for (const auto& entry : fs::directory_iterator(directory))
-        {
-            if (!entry.is_regular_file())
-                continue;
-
-            if (entry.path().extension() != ".desktop")
-                continue;
-
-            std::ifstream app(entry.path());
-
-            if (!app.is_open())
-                continue;
-
-            Application application;
-            std::string line;
-
-            while (std::getline(app, line))
-            {
-                if (line == "[Desktop Entry]")
-                    continue;
-
-                if (!line.empty() && line[0] == '[')
-                    break;
-
-                if (line.rfind("Name=", 0) == 0)
-                {
-                    application.name = line.substr(5);
-                    
-                }
-                else if (line.rfind("Exec=", 0) == 0)
-                {
-                    application.exec = line.substr(5);
-                }
-                else if (line.rfind("Icon=", 0) == 0)
-                {
-                    application.icon = line.substr(5);
-                }
-            }
-
-            if (application.name.empty())
-                continue;
-            if (application.icon.empty())
-                continue;
-
-            application.desktop_file = entry.path();
-
-            addInJson(application.exec, application.name);
-
-            application.time = readTimeFromStatistic(application.name);
-
-            applications.push_back(application);
-        }
-    }
+std::string trim(std::string value)
+{
+    const auto first = value.find_first_not_of(" \t\r\n");
+    if (first == std::string::npos)
+        return {};
+    const auto last = value.find_last_not_of(" \t\r\n");
+    return value.substr(first, last - first + 1);
 }
 
-
-void list_app()
+std::string categories_for_display(std::string value)
 {
-    for (const auto& application : applications)
-    {
-        std::cout << application.name << " time: " << application.time << " s."<<'\n';
-    }
+    while (!value.empty() && value.back() == ';')
+        value.pop_back();
+    std::replace(value.begin(), value.end(), ';', ',');
+    return value;
 }
-
-
-std::string clean_exec(std::string exec)
-{
-
-    const std::vector<std::string> placeholders = {
-        "%U",
-        "%u",
-        "%F",
-        "%f",
-        "%i",
-        "%c",
-        "%k"
-    };
-
-    for (const auto& placeholder : placeholders)
-    {
-        std::size_t pos;
-
-        while ((pos = exec.find(placeholder)) != std::string::npos)
-        {
-            exec.erase(pos, placeholder.length());
-        }
-    }
-
-    return exec;
-}
-
 
 std::vector<std::string> split_command(const std::string& command)
 {
     std::vector<std::string> arguments;
-
     std::string current;
-    bool inside_quotes = false;
     char quote = '\0';
+    bool escaped = false;
 
-    for (std::size_t i = 0; i < command.size(); ++i)
+    for (char c : command)
     {
-        char c = command[i];
-
-        if ((c == '"' || c == '\''))
+        if (escaped)
         {
-            if (!inside_quotes)
-            {
-                inside_quotes = true;
-                quote = c;
-            }
-            else if (quote == c)
-            {
-                inside_quotes = false;
-                quote = '\0';
-            }
-
+            current += c;
+            escaped = false;
             continue;
         }
-
-        if (std::isspace(static_cast<unsigned char>(c)) && !inside_quotes)
+        if (c == '\\')
+        {
+            escaped = true;
+            continue;
+        }
+        if (quote != '\0')
+        {
+            if (c == quote)
+                quote = '\0';
+            else
+                current += c;
+            continue;
+        }
+        if (c == '\'' || c == '"')
+        {
+            quote = c;
+            continue;
+        }
+        if (std::isspace(static_cast<unsigned char>(c)))
         {
             if (!current.empty())
             {
                 arguments.push_back(current);
                 current.clear();
             }
-
             continue;
         }
-        if (c == '\\' && i + 1 < command.size())
-        {
-            ++i;
-            current += command[i];
-            continue;
-        }
-
         current += c;
     }
-
+    if (escaped)
+        current += '\\';
     if (!current.empty())
         arguments.push_back(current);
 
-    return arguments;
-}
-
-
-void open_app(std::string name)
-{
-    for (const auto& application : applications)
+    const std::set<std::string> field_codes = {
+        "%U", "%u", "%F", "%f", "%i", "%c", "%k", "%d", "%D", "%n", "%N", "%v", "%m"
+    };
+    for (auto& argument : arguments)
     {
-        if (application.name == name)
+        for (const auto& code : field_codes)
         {
-            std::string exec = clean_exec(application.exec);
-
-            std::vector<std::string> arguments = split_command(exec);
-
-            if (arguments.empty())
-            {
-                std::cerr << "Invalid Exec field.\n";
-                return;
-            }
-
-            std::vector<char*> argv;
-
-            for (auto& argument : arguments)
-                argv.push_back(argument.data());
-
-            argv.push_back(nullptr);
-
-            pid_t pid = fork();
-
-            if (pid == -1)
-            {
-                std::cerr << "Failed to fork.\n";
-                return;
-            }
-
-            if (pid == 0)
-            {
-                execvp(argv[0], argv.data());
-
-                std::cerr << "Failed to start: "
-                          << application.name << '\n';
-
-                _exit(127);
-            }
-            return;
+            std::size_t position;
+            while ((position = argument.find(code)) != std::string::npos)
+                argument.erase(position, code.size());
         }
     }
-
-    
-
-    std::cout << "Not find a " << name << "!\n";
+    arguments.erase(std::remove_if(arguments.begin(), arguments.end(),
+        [](const std::string& value) { return value.empty(); }), arguments.end());
+    return arguments;
 }
-
+}
 
 std::string to_lower(std::string text)
 {
-    for (char& c : text)
-    {
-        c = static_cast<char>(
-            std::tolower(static_cast<unsigned char>(c))
-        );
-    }
-
+    std::transform(text.begin(), text.end(), text.begin(),
+        [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
     return text;
 }
 
-
-void search_app(std::string query)
+void load_app()
 {
-    std::size_t found_count = 0;
+    applications.clear();
 
-    std::string low_que = to_lower(query);
-
-    for (const auto& application : applications)
+    const auto home_env = std::getenv("HOME");
+    if (!home_env)
     {
-        std::string name_lower = to_lower(application.name);
+        std::cerr << "Lumen: HOME environment variable not found.\n";
+        return;
+    }
 
-        if (name_lower.find(low_que) != std::string::npos)
+    // User entries are loaded first; duplicate names from system directories
+    // are ignored so local desktop files can override system ones.
+    const std::vector<fs::path> directories = {
+        fs::path(home_env) / ".local/share/applications",
+        "/usr/local/share/applications",
+        "/usr/share/applications"
+    };
+    std::set<std::string> seen_names;
+
+    for (const auto& directory : directories)
+    {
+        std::error_code ec;
+        if (!fs::is_directory(directory, ec))
+            continue;
+
+        fs::recursive_directory_iterator it(
+            directory, fs::directory_options::skip_permission_denied, ec), end;
+        for (; it != end; it.increment(ec))
         {
-            std::cout << "Found: "
-                      << application.name
-                      << '\n';
+            if (ec)
+            {
+                ec.clear();
+                continue;
+            }
+            if (!it->is_regular_file(ec) || it->path().extension() != ".desktop")
+                continue;
 
-            ++found_count;
+            std::ifstream input(it->path());
+            if (!input)
+                continue;
+
+            Application app;
+            std::string line;
+            std::string type = "Application";
+            bool in_entry = false;
+            bool hidden = false;
+            bool no_display = false;
+
+            while (std::getline(input, line))
+            {
+                line = trim(line);
+                if (line.empty() || line[0] == '#')
+                    continue;
+                if (line.front() == '[')
+                {
+                    in_entry = line == "[Desktop Entry]";
+                    continue;
+                }
+                if (!in_entry)
+                    continue;
+
+                const auto equal = line.find('=');
+                if (equal == std::string::npos)
+                    continue;
+                const auto key = line.substr(0, equal);
+                const auto value = line.substr(equal + 1);
+
+                if (key == "Name") app.name = value;
+                else if (key == "Exec") app.exec = value;
+                else if (key == "Icon") app.icon = value;
+                else if (key == "Categories") app.category = categories_for_display(value);
+                else if (key == "Type") type = value;
+                else if (key == "Hidden" && to_lower(value) == "true") hidden = true;
+                else if (key == "NoDisplay" && to_lower(value) == "true") no_display = true;
+            }
+
+            if (app.name.empty() || app.exec.empty() || hidden || no_display || type != "Application")
+                continue;
+
+            const std::string key = to_lower(app.name);
+            if (!seen_names.insert(key).second)
+                continue;
+
+            app.desktop_file = it->path();
+            app.time = 0;
+            applications.push_back(std::move(app));
         }
     }
 
-    if (found_count == 0)
+    rebuildAppStatistics();
+    for (auto& app : applications)
+        app.time = readTimeFromStatistic(app.name);
+
+    std::sort(applications.begin(), applications.end(),
+        [](const Application& a, const Application& b) {
+            return to_lower(a.name) < to_lower(b.name);
+        });
+}
+
+void list_app()
+{
+    for (const auto& application : applications)
+        std::cout << application.name << " time: " << application.time << " s.\n";
+}
+
+void open_app(std::string name)
+{
+    const auto found = std::find_if(applications.begin(), applications.end(),
+        [&name](const Application& app) { return app.name == name; });
+
+    if (found == applications.end())
+    {
+        std::cerr << "Lumen: application not found: " << name << '\n';
+        return;
+    }
+
+    auto arguments = split_command(found->exec);
+    if (arguments.empty())
+    {
+        std::cerr << "Lumen: invalid Exec field for " << found->name << '\n';
+        return;
+    }
+
+    std::vector<char*> argv;
+    argv.reserve(arguments.size() + 1);
+    for (auto& argument : arguments)
+        argv.push_back(argument.data());
+    argv.push_back(nullptr);
+
+    const pid_t pid = fork();
+    if (pid < 0)
+    {
+        perror("Lumen: fork");
+        return;
+    }
+    if (pid == 0)
+    {
+        // Avoid leaving a child attached to the GUI's process group.
+        setsid();
+        execvp(argv[0], argv.data());
+        perror("Lumen: execvp");
+        _exit(127);
+    }
+}
+
+void search_app(std::string query)
+{
+    const auto needle = to_lower(query);
+    std::size_t count = 0;
+
+    for (const auto& app : applications)
+    {
+        if (to_lower(app.name).find(needle) != std::string::npos)
+        {
+            std::cout << "Found: " << app.name << '\n';
+            ++count;
+        }
+    }
+
+    if (count == 0)
         std::cout << "No applications found.\n";
 }

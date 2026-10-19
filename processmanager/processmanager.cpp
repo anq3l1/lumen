@@ -1,139 +1,103 @@
-#include <iostream>
-#include <filesystem>
-#include <string>
-#include <fstream>
-#include <format>
-#include <map>
-#include <thread>
+#include "processmanager.hpp"
+#include "stats.hpp"
+#include "paths.hpp"
+
+#include <algorithm>
 #include <chrono>
+#include <cctype>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <map>
+#include <set>
+#include <string>
+#include <thread>
+#include <vector>
+#include <unistd.h>
 
-#include <nlohmann/json.hpp>
-
-
-//---------NAMESPACES---------
-
-using namespace std::literals;
 namespace fs = std::filesystem;
-using json = nlohmann::json;
+using namespace std::chrono_literals;
 
-void addInStatictic(std::string name, int time)
+namespace
 {
-    if (name.empty())
-        return;
-
-    json data;
-
-    std::ifstream read_stat("proc.json");
-
-    if (read_stat.is_open() && read_stat.peek() != std::ifstream::traits_type::eof())
-    {
-        read_stat >> data;
-    }
-
-    read_stat.close();
-
-    if (!data.contains(name))
-    {
-        data[name] = time;
-    }
-    else
-    {
-        data[name] = data[name].get<int>() + time;
-    }
-
-    std::ofstream statistic("proc.json");
-
-    statistic << data.dump(4);
+std::string get_process_name(const fs::path& proc_directory)
+{
+    std::ifstream input(proc_directory / "comm");
+    std::string name;
+    if (input)
+        std::getline(input, name);
+    return name;
 }
 
-std::string getProcessName(int pid)
+std::map<pid_t, std::string> get_processes()
 {
-    std::string path = "/proc/" + std::to_string(pid) + "/comm";
+    std::map<pid_t, std::string> processes;
+    std::error_code ec;
+    fs::directory_iterator it("/proc", fs::directory_options::skip_permission_denied, ec), end;
 
-    std::fstream file(path);
-
-    if(!file.is_open())
-        return "";
-
-    std::string process_name;
-
-    std::getline(file, process_name);
-
-    return process_name;
-}
-
-std::map<int, std::string> getProcesses()
-{
-    std::map<int, std::string> processes;
-
-    for (const auto& entry : fs::directory_iterator("/proc"))
+    for (; it != end; it.increment(ec))
     {
-        if (!entry.is_directory())
+        if (ec)
+        {
+            ec.clear();
+            continue;
+        }
+        if (!it->is_directory(ec))
             continue;
 
-        std::string pid = entry.path().filename().string();
-
-        if (pid.empty() ||
-            !std::all_of(pid.begin(), pid.end(), ::isdigit))
+        const std::string filename = it->path().filename().string();
+        if (filename.empty() || !std::all_of(filename.begin(), filename.end(),
+            [](unsigned char c) { return std::isdigit(c); }))
             continue;
 
-        processes[(std::stoi(pid))] = getProcessName(std::stoi(pid));
+        try
+        {
+            const auto pid = static_cast<pid_t>(std::stol(filename));
+            const auto name = get_process_name(it->path());
+            if (!name.empty())
+                processes.emplace(pid, name);
+        }
+        catch (const std::exception&)
+        {
+            continue;
+        }
     }
-
     return processes;
+}
 }
 
 int ProcessManager()
 {
-    std::ifstream check("proc.json");
+    lumen_paths::ensure_directories();
+    std::cout << "Lumen process manager started. Data: "
+              << lumen_paths::data_dir() << std::endl;
 
-    if (!check.good())
+    int seconds_since_rebuild = 0;
+    const pid_t own_pid = getpid();
+
+    while (true)
     {
-        std::ofstream file("proc.json");
-        file << "{}";
-    }
+        std::this_thread::sleep_for(1s);
+        const auto processes = get_processes();
+        std::set<std::string> unique_names;
 
-    std::map<int, std::chrono::steady_clock::time_point> startTime;
-
-    std::map<int, std::string> oldprocess = getProcesses();
-
-    for(auto& [pid, name] : oldprocess)
-    {
-        startTime[pid] = std::chrono::steady_clock::now();
-    }
-
-    while(true)
-    {
-        oldprocess = getProcesses();
-
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-
-        std::map<int, std::string> newprocess = getProcesses();
-
-        for(auto& [pid, name] : newprocess)
+        for (const auto& [pid, name] : processes)
         {
-            if(!oldprocess.contains(pid))
-            {
-                startTime[pid] = std::chrono::steady_clock::now();
-            }
+            // Do not count Lumen's GUI/monitor itself as application usage.
+            if (pid == own_pid || name == "lumen")
+                continue;
+            unique_names.insert(name);
         }
 
-        for(auto& [pid, name] : oldprocess)
+        const std::vector<std::string> names(unique_names.begin(), unique_names.end());
+        addProcessTimes(names, 1);
+
+        if (++seconds_since_rebuild >= 10)
         {
-            auto start = startTime[pid];
-
-            if(!newprocess.contains(pid))
-            {
-                auto end = std::chrono::steady_clock::now();
-
-                auto time = (end - start) / 1s;
-
-                addInStatictic(name, time);
-            }
-
+            rebuildAppStatistics();
+            seconds_since_rebuild = 0;
         }
     }
-    
 
     return 0;
 }
