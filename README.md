@@ -6,7 +6,7 @@ The goal of Lumen is to create a fast, customizable launcher with application us
 
 > 🚧 **Early stage of development** — Lumen currently features a CLI prototype, a graphical interface, and application usage tracking.
 
-![Lumen screenshot](https://raw.githubusercontent.com/anq3l1/lumen/screenshots/image.png)
+![Lumen screenshot](https://raw.githubusercontent.com/anq3l1/lumen/screenshots/lumen.png)
 
 ## Features
 
