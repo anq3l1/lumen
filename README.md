@@ -1,343 +1,49 @@
 # Lumen
 
-**Lumen** is a Linux application launcher and usage tracker written in C++.
+**Lumen** is an application launcher and usage tracker for Linux, written in C++.
 
-**[Версия на русском языке](README_RU.md)**
+The goal of Lumen is to create a fast, customizable launcher with application usage tracking, session statistics, and a modern graphical interface.
 
-The goal of Lumen is to provide a fast, customizable launcher with application usage statistics, session tracking and a modern graphical interface.
-
-> 🚧 **Early development** — Lumen is currently a CLI prototype. The GUI and usage tracking are planned for future releases.
+> 🚧 **Early stage of development** — Lumen currently features a CLI prototype, a graphical interface, and application usage tracking.
 
 ## Features
 
-### Currently working
+### Implemented
 
-* [x] Scan Linux `.desktop` application files
-* [x] Parse application name
-* [x] Parse application executable (`Exec=`)
-* [x] Parse application icon (`Icon=`)
-* [x] Store applications in memory
-* [x] List detected applications
-* [x] Find an application by name
-* [x] Launch applications from the launcher
-* [x] Application search
+- [x] Discover Linux `.desktop` files
+- [x] Retrieve application names
+- [x] Retrieve application executable commands (`Exec=`)
+- [x] Retrieve application icons (`Icon=`)
+- [x] Store applications in memory
+- [x] Display discovered applications
+- [x] Search applications by name
+- [x] Launch applications
+- [x] Application search
+- [x] Application categories
+- [x] Graphical user interface
+- [x] Application icons
+- [x] Application usage time tracking
 
 ### Planned
 
-* [ ] Application categories
-* [ ] Graphical user interface
-* [ ] Application icons
-* [ ] Keyboard navigation
-* [ ] Running application detection
-* [ ] Application usage tracking
-* [ ] Session tracking
-* [ ] SQLite database
-* [ ] Daily / weekly / monthly statistics
-* [ ] Usage graphs
-* [ ] Current session timer
-* [ ] Hyprland integration
-* [ ] Customizable dashboard
-* [ ] Themes and customization
-* [ ] Configuration file
-* [ ] Background / wallpaper support
-* [ ] Clock and system widgets
-
----
-
-# Roadmap
-
-## v0.1 — Application Discovery
-
-The current development stage.
-
-* [x] Project structure
-* [x] Read `/usr/share/applications`
-* [x] Find `.desktop` files
-* [x] Parse `Name=`
-* [x] Parse `Exec=`
-* [x] Parse `Icon=`
-* [x] Store applications in `std::vector`
-* [x] List applications
-* [x] Launch applications
-
----
-
-## v0.2 — Launcher Core
-
-Improve the core before starting the GUI.
-
-* [ ] Separate application loading from listing
-* [ ] Create dedicated `Application` class/structure
-* [ ] Store `.desktop` file path
-* [ ] Handle duplicate application names
-* [ ] Implement application search
-* [ ] Parse `Exec=` correctly
-* [ ] Handle `.desktop` field codes
-* [ ] Handle invalid `.desktop` files
-* [ ] Search additional application directories
-* [ ] Add command-line arguments
-
-Example:
-
-```bash
-lumen --list
-lumen --open Firefox
-lumen --search firefox
-```
-
----
-
-## v0.3 — GUI
-
-Create the first graphical interface.
-
-Planned layout:
-
-```text
-┌─────────────────────────────────────────────────────────┐
-│                         Lumen                            │
-├──────────────────┬──────────────────────────────────────┤
-│ Applications     │                                      │
-│                  │                                      │
-│ Firefox          │                                      │
-│ Dolphin          │             Dashboard                │
-│ Kitty            │                                      │
-│ VS Code          │                                      │
-│ Telegram         │                                      │
-│ ...              │                                      │
-│                  │                                      │
-└──────────────────┴──────────────────────────────────────┘
-```
-
-* [ ] Choose GUI framework
-* [ ] Application list
-* [ ] Search bar
-* [ ] Application icons
-* [ ] Application launching
-* [ ] Keyboard navigation
-* [ ] Scrollable application list
-* [ ] Resizable sidebar
-* [ ] Modern dark interface
-
----
-
-## v0.4 — Usage Tracking
-
-Start collecting application usage data.
-
-* [ ] Detect running applications
-* [ ] Track application start
-* [ ] Track application exit
-* [ ] Track session duration
-* [ ] Store sessions
-* [ ] SQLite database
-* [ ] Application history
-* [ ] Current session timer
-
-Example:
-
-```text
-Firefox
-
-Today
-────────────────────
-2h 43m
-
-Sessions
-────────────────────
-10:42 - 11:17    35m
-13:21 - 14:04    43m
-18:02 - 19:27    1h 25m
-```
-
----
-
-## v0.5 — Statistics
-
-Turn collected sessions into useful statistics.
-
-* [ ] Today
-* [ ] Yesterday
-* [ ] Last 7 days
-* [ ] Last 30 days
-* [ ] Monthly statistics
-* [ ] Most used applications
-* [ ] Total usage time
-* [ ] Usage graphs
-* [ ] Application comparison
-* [ ] Daily activity timeline
-
----
-
-## v0.6 — Hyprland Integration
-
-Add deeper integration with the Linux desktop.
-
-* [x] Hyprland IPC integration
-* [ ] Detect active window
-* [ ] Detect active application
-* [ ] Track active time
-* [ ] Distinguish running time from active time
-* [ ] Workspace information
-* [ ] Better application detection
-
-Example:
-
-```text
-Running time:
-Firefox     4h 21m
-
-Active time:
-Firefox     2h 47m
-```
-
----
-
-## v0.7 — Dashboard
-
-Build the customizable right-side dashboard.
-
-Possible widgets:
-
-* [ ] Clock
-* [ ] Date
-* [ ] Today's activity
-* [ ] Weekly activity
-* [ ] Most used applications
-* [ ] Current application
-* [ ] Usage graph
-* [ ] System information
-* [ ] Custom wallpaper
-* [ ] Custom background
-* [ ] Widget visibility settings
-
----
-
-## v0.8 — Customization
-
-Make Lumen configurable.
-
-* [ ] Theme system
-* [ ] Accent color
-* [ ] Background configuration
-* [ ] Sidebar width
-* [ ] Widget configuration
-* [ ] Application sorting
-* [ ] Application filtering
-* [ ] JSON configuration
-* [ ] User settings
-
-Example configuration:
-
-```json
-{
-    "theme": "dark",
-    "accent": "purple",
-    "sidebar_width": 320,
-    "show_clock": true,
-    "show_statistics": true
-}
-```
-
----
-
-## v0.9 — Polish
-
-Prepare the project for a first stable release.
-
-* [ ] Improve performance
-* [ ] Improve error handling
-* [ ] Clean up architecture
-* [ ] Refactor launcher core
-* [ ] Improve UI
-* [ ] Add animations
-* [ ] Add keyboard shortcuts
-* [ ] Documentation
-* [ ] Screenshots
-* [ ] Installation instructions
-* [ ] Configuration documentation
-
----
-
-## v1.0 — First Stable Release
-
-Target:
-
-> A complete Linux launcher with application discovery, launching, usage tracking, statistics and a customizable dashboard.
-
-Planned v1.0 feature set:
-
-* Application launcher
-* Application search
-* Application icons
-* Usage tracking
-* Session history
-* SQLite database
-* Daily / weekly / monthly statistics
-* Usage graphs
-* Hyprland integration
-* Customizable dashboard
-* Themes
-* Configuration
-* Keyboard navigation
-
----
-
-# Architecture
-
-The project is planned around several separate components:
-
-```text
-                 ┌─────────────────┐
-                 │   .desktop      │
-                 │     files       │
-                 └────────┬────────┘
-                          │
-                          ▼
-                 ┌─────────────────┐
-                 │ Application     │
-                 │     Loader      │
-                 └────────┬────────┘
-                          │
-                          ▼
-                 ┌─────────────────┐
-                 │  Application    │
-                 │      Model      │
-                 └────────┬────────┘
-                          │
-             ┌────────────┼────────────┐
-             ▼            ▼            ▼
-        Launcher      Tracker       GUI
-             │            │            │
-             │            ▼            │
-             │         SQLite          │
-             │            │            │
-             └────────────┼────────────┘
-                          ▼
-                     Statistics
-```
-
----
-
-# Tech Stack
-
-Current / planned technologies:
-
-* **C++**
-* **Linux**
-* **STL**
-* **`std::filesystem`**
-* **`.desktop` files**
-* **SQLite**
-* **Hyprland IPC**
-* **Git / GitHub**
-* GUI framework — *TBD*
+- [ ] Keyboard navigation
+- [ ] Session tracking
+- [ ] SQLite database
+- [ ] Daily / weekly / monthly statistics
+- [ ] Usage charts
+- [ ] Current session timer
+- [ ] Hyprland integration
+- [ ] Customizable panel
+- [ ] Themes and customization
+- [ ] Configuration file
+- [ ] Background / wallpaper support
+- [ ] Clock and system widgets
 
 ---
 
 # Building
 
-Currently Lumen is in early development.
+Lumen is currently in an early stage of development.
 
 Clone the repository:
 
@@ -346,72 +52,71 @@ git clone https://github.com/YOUR_USERNAME/lumen.git
 cd lumen
 ```
 
-Compile the current prototype:
+Compile and build the current version:
 
 ```bash
-g++ src/main.cpp src/handlers.cpp -Iinclude -o lumen
+./install.sh
 ```
 
-List detected applications:
+List discovered applications:
 
 ```bash
-./lumen --list
+lumen --list
 ```
 
-Open an application:
+Launch an application:
 
 ```bash
-./lumen --open kitty
+lumen --open kitty
 ```
 
----
+Search for an application:
 
-# Project Status
+```bash
+lumen --search firefox
+```
 
-| Component             | Status |
-| --------------------- | ------ |
-| Project setup         | 🟢     |
-| `.desktop` discovery  | 🟢     |
-| Application parsing   | 🟢     |
-| Application storage   | 🟢     |
-| CLI listing           | 🟢     |
-| Application launching | 🟢     |
-| Search                | 🔴     |
-| GUI                   | 🔴     |
-| Usage tracking        | 🔴     |
-| SQLite                | 🔴     |
-| Statistics            | 🔴     |
-| Hyprland integration  | 🔴     |
-| Dashboard             | 🔴     |
-| Customization         | 🔴     |
+Launch the graphical interface:
 
-**Legend:**
-
-* 🟢 Working
-* 🟡 In development
-* 🔴 Planned
+```bash
+lumen
+```
 
 ---
 
 # Why Lumen?
 
-Lumen started as a small C++ project for learning Linux internals, application management and desktop integration.
+Lumen started as a small C++ project for learning Linux internals, application management, and desktop environment integration.
 
-The project is intended to grow from a simple launcher into a complete desktop activity dashboard.
+Over time, the project aims to evolve from a simple launcher into a fully featured desktop activity panel.
 
-The main focus is learning by building:
+The core principle behind the project is **learning by building a real-world project**:
 
-* Linux filesystem APIs
-* Process management
-* `.desktop` specifications
-* Inter-process communication
-* Databases
-* GUI development
-* Software architecture
-* C++ project organization
+- Linux filesystem APIs
+- Process management
+- The `.desktop` specification
+- Inter-process communication (IPC)
+- Databases
 
 ---
 
-# License
+## Installing the Updated Version
 
-License: **TBD**
+On Arch Linux, run the following commands from the project root:
+
+```bash
+chmod +x install.sh
+./install.sh
+```
+
+The installer will install the dependencies, build the project, and install the executable to `~/.local/bin/lumen`.
+
+Tracker data is stored in `~/.local/share/lumen/proc.json` and `~/.local/share/lumen/stat.json`. The user CSS file is located at `~/.config/lumen/style.css`.
+
+The Hyprland Lua configuration file is installed to `~/.config/hypr/lua/lumen.lua`. If `~/.config/hypr/hyprland.lua` exists, the installer will add a command to load this file. If you use a different Lua entry point, add the following line after initializing `hl`:
+
+```lua
+dofile(os.getenv("HOME") .. "/.config/hypr/lua/lumen.lua")
+```
+
+The process manager starts on the `hyprland.start` event using the `lumen --processmanager` command. The application list contains one entry per displayed application name; applications with identical names from user and system `.desktop` files are not duplicated.
