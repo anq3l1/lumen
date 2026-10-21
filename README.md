@@ -4,6 +4,8 @@
 
 The goal of Lumen is to create a fast, customizable launcher with application usage tracking, session statistics, and a modern graphical interface.
 
+https://anq3l1.github.io/lumen-wiki/
+
 > 🚧 **Early stage of development** — Lumen currently features a CLI prototype, a graphical interface, and application usage tracking.
 
 ![Lumen screenshot](https://github.com/anq3l1/lumen/blob/main/screenshots/lumen.png)
