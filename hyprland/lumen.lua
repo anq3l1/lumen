@@ -13,5 +13,5 @@ hl.window_rule({
 })
 
 hl.on("hyprland.start", function()
-    hl.exec_cmd(.. os.getenv("HOME") .. "/.local/bin/lumen --processmanager &")
+    hl.exec_cmd(os.getenv("HOME") .. "/.local/bin/lumen --processmanager &")
 end)
