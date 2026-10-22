@@ -124,8 +124,6 @@ void load_app()
         return;
     }
 
-    // User entries are loaded first; duplicate names from system directories
-    // are ignored so local desktop files can override system ones.
     const std::vector<fs::path> directories = {
         fs::path(home_env) / ".local/share/applications",
         "/usr/local/share/applications",
@@ -244,6 +242,7 @@ void open_app(std::string name)
     argv.push_back(nullptr);
 
     const pid_t pid = fork();
+
     if (pid < 0)
     {
         perror("Lumen: fork");
@@ -251,7 +250,6 @@ void open_app(std::string name)
     }
     if (pid == 0)
     {
-        // Avoid leaving a child attached to the GUI's process group.
         setsid();
         execvp(argv[0], argv.data());
         perror("Lumen: execvp");
