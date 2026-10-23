@@ -11,6 +11,7 @@ struct Application
     std::string icon;
     std::string category;
     int time = 0;
+    int launches = 0;
     std::filesystem::path desktop_file;
 };
 

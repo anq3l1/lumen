@@ -325,14 +325,37 @@ void addProcessTimes(const std::vector<std::string>& process_names, int seconds)
     write_json_atomic(lumen_paths::proc_file(), processes);
 }
 
+void addLaunchesCount(const std::string& appnames, int launch)
+{
+    lumen_paths::ensure_directories();
+    json launches = read_json_object(lumen_paths::launch_file());
+
+    if (appnames.empty())
+        return;
+
+    int current = 0;
+
+    if (launches.contains(appnames) && launches[appnames].is_number_integer())
+        current = launches[appnames].get<int>();
+
+    else if (launches.contains(appnames) && launches[appnames].is_number())
+        current = static_cast<int>(launches[appnames].get<double>());
+
+    launches[appnames] = std::max(0, current) + launch;
+
+    write_json_atomic(lumen_paths::launch_file(), launches);
+}
+
 void rebuildAppStatistics()
 {
     lumen_paths::ensure_directories();
     const json processes = read_json_object(lumen_paths::proc_file());
+
     json previous = read_json_object(lumen_paths::stat_file());
     json statistics = json::object();
 
     std::map<std::string, long long> canonical_times;
+
     for (auto it = processes.begin(); it != processes.end(); ++it)
     {
         if (!it.value().is_number())
@@ -363,9 +386,25 @@ void rebuildAppStatistics()
 int readTimeFromStatistic(const std::string& application_name)
 {
     lumen_paths::ensure_directories();
+
     const json statistics = read_json_object(lumen_paths::stat_file());
     const auto found = statistics.find(application_name);
+
     if (found == statistics.end() || !found->is_number())
         return 0;
+
+    return static_cast<int>(std::max<long long>(0, found->get<long long>()));
+}
+
+int readLaunchFromStatistic(const std::string& appname)
+{
+    lumen_paths::ensure_directories();
+
+    const json launches = read_json_object(lumen_paths::launch_file());
+    const auto found = launches.find(appname);
+
+    if(found == launches.end() || !found->is_number())
+        return 0;
+
     return static_cast<int>(std::max<long long>(0, found->get<long long>()));
 }

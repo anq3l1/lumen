@@ -38,6 +38,11 @@ inline fs::path style_file()
     return config_dir() / "style.css";
 }
 
+inline fs::path launch_file()
+{
+    return data_dir() / "launches.json";
+}
+
 inline void ensure_directories()
 {
     std::error_code ec;

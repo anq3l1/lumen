@@ -5,6 +5,7 @@ PROJECT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 BIN_DIR="$HOME/.local/bin"
 DATA_DIR="$HOME/.local/share/lumen"
 CONFIG_DIR="$HOME/.config/lumen"
+CONFIG_WALLPAPER_DIR="$HOME/.config/lumen/Wallpaper"
 HYPR_LUA_DIR="$HOME/.config/hypr/lua"
 
 if ! command -v pacman >/dev/null 2>&1; then
@@ -31,6 +32,9 @@ if [[ ! -e "$DATA_DIR/proc.json" && -f "$PROJECT_DIR/proc.json" ]]; then
 fi
 if [[ ! -e "$DATA_DIR/stat.json" && -f "$PROJECT_DIR/stat.json" ]]; then
     install -m 600 "$PROJECT_DIR/stat.json" "$DATA_DIR/stat.json"
+fi
+if [[ ! -e "$DATA_DIR/launches.json" && -f "$PROJECT_DIR/launches.json" ]]; then
+    install -m 600 "$PROJECT_DIR/launches.json" "$DATA_DIR/launches.json"
 fi
 [[ -e "$DATA_DIR/proc.json" ]] || printf '{}\n' > "$DATA_DIR/proc.json"
 [[ -e "$DATA_DIR/stat.json" ]] || printf '{}\n' > "$DATA_DIR/stat.json"
@@ -75,7 +79,7 @@ fi
 echo
 echo "Lumen installed successfully."
 echo "Executable: $BIN_DIR/lumen"
-echo "Data:       $DATA_DIR/{proc.json,stat.json}"
+echo "Data:       $DATA_DIR/{proc.json,stat.json,launches.json}"
 echo "CSS:        $CONFIG_DIR/style.css"
 echo "Hyprland:   $HYPR_LUA_DIR/lumen.lua"
 echo "Try:        $BIN_DIR/lumen --list"

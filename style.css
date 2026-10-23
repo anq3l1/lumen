@@ -69,6 +69,10 @@ scrolledwindow,
     background-color: #000000;
 }
 
+.wallpaper-dim {
+    background-color: rgba(0, 0, 0, 0);
+}
+
 .page-title {
     color: #ffffff;
     font-size: 30px;

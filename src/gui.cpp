@@ -8,6 +8,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <random>
 
 #include "gui.hpp"
 #include "handlers.hpp"
@@ -28,6 +29,42 @@ std::string lower(std::string value)
     );
 
     return value;
+}
+
+fs::path get_random_wallpaper()
+{
+    const fs::path directory =
+        fs::path(std::getenv("HOME")) / ".config/lumen/Wallpaper";
+    
+    if (!fs::exists(directory) || !fs::is_directory(directory))
+        return {};
+
+    std::vector<fs::path> wallpapers;
+
+    for (const auto& entry : fs::directory_iterator(directory))
+    {
+        if (!entry.is_regular_file())
+            continue;
+
+        const auto ext = lower(entry.path().extension().string());
+
+        if (ext == ".png" || ext == ".jpg" ||
+            ext == ".jpeg" || ext == ".webp")
+        {
+            wallpapers.push_back(entry.path());
+        }
+    }
+
+    if (wallpapers.empty())
+        return {};
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<std::size_t> dist(
+        0, wallpapers.size() - 1
+    );
+
+    return wallpapers[dist(gen)].string();
 }
 
 fs::path get_css_path()
@@ -83,6 +120,11 @@ std::string get_usage_time(const Application& app)
     return format_duration(static_cast<double>(readTimeFromStatistic(app.name)));
 }
 
+std::string get_launch(const Application& app)
+{
+    return std::to_string(readLaunchFromStatistic(app.name));
+}
+
 void set_image(Gtk::Image& image, const std::string& icon)
 {
     image.set_from_icon_name("application-x-executable");
@@ -112,26 +154,30 @@ void set_image(Gtk::Image& image, const std::string& icon)
 class MainWindow : public Gtk::ApplicationWindow
 {
 public:
+    void show_home()
+    {
+        wallpaper.set_visible(true);
+        dim_overlay.set_visible(true);
+    }
+
     MainWindow()
     {
         set_title("Lumen");
         set_default_size(900, 600);
+        show_home();
 
         load_css();
 
         main_box.set_orientation(Gtk::Orientation::HORIZONTAL);
         main_box.add_css_class("main-window");
+        main_box.set_spacing(0);
+        main_box.set_margin(0);
 
         sidebar.set_orientation(Gtk::Orientation::VERTICAL);
         sidebar.set_size_request(240, -1);
         sidebar.set_spacing(10);
         sidebar.set_margin(12);
         sidebar.add_css_class("sidebar");
-
-        auto* heading = Gtk::make_managed<Gtk::Label>("Applications");
-        heading->set_xalign(0.0f);
-        heading->add_css_class("sidebar-heading");
-        sidebar.append(*heading);
 
         search.set_placeholder_text("Search applications...");
         search.add_css_class("app-search");
@@ -148,12 +194,31 @@ public:
         app_scroll.set_vexpand(true);
         sidebar.append(app_scroll);
 
-        content.set_orientation(Gtk::Orientation::VERTICAL);
-        content.set_spacing(18);
-        content.set_margin(28);
+        wallpaper.set_filename(
+            get_random_wallpaper()
+        );
+
+        wallpaper.set_can_shrink(true);
+        wallpaper.set_content_fit(Gtk::ContentFit::COVER);
+
+        content_overlay.set_child(wallpaper);
+
+        // Затемняющий слой
+        dim_overlay.set_hexpand(true);
+        dim_overlay.set_vexpand(true);
+        dim_overlay.set_halign(Gtk::Align::FILL);
+        dim_overlay.set_valign(Gtk::Align::FILL);
+        dim_overlay.add_css_class("wallpaper-dim");
+
+        content_overlay.add_overlay(dim_overlay);
+
         content.set_hexpand(true);
         content.set_vexpand(true);
+        content.set_spacing(10);
+        content.set_margin(15);
         content.add_css_class("content");
+
+        content_overlay.add_overlay(content);
 
         details_header.set_orientation(Gtk::Orientation::HORIZONTAL);
         details_header.set_spacing(20);
@@ -182,9 +247,15 @@ public:
         details_usage.set_xalign(0.0f);
         details_usage.add_css_class("detail-label");
 
+        details_launches.set_text("Launches: —");
+        details_launches.set_xalign(0.0f);
+        details_launches.add_css_class("detail-label");
+
+
         details_info.append(details_name);
         details_info.append(details_category);
         details_info.append(details_usage);
+        details_info.append(details_launches);
 
         details_header.append(details_icon);
         details_header.append(details_info);
@@ -192,7 +263,7 @@ public:
         content.append(details_header);
 
         main_box.append(sidebar);
-        main_box.append(content);
+        main_box.append(content_overlay);
         set_child(main_box);
 
         load_app();
@@ -209,6 +280,9 @@ private:
     Gtk::Box main_box{Gtk::Orientation::HORIZONTAL};
     Gtk::Box sidebar{Gtk::Orientation::VERTICAL};
     Gtk::Box content{Gtk::Orientation::VERTICAL};
+    Gtk::Overlay content_overlay;
+    Gtk::Picture wallpaper;
+    Gtk::Box dim_overlay{Gtk::Orientation::VERTICAL};
 
     Gtk::Box details_header{Gtk::Orientation::HORIZONTAL};
     Gtk::Box details_info{Gtk::Orientation::VERTICAL};
@@ -221,6 +295,7 @@ private:
     Gtk::Label details_name;
     Gtk::Label details_category;
     Gtk::Label details_usage;
+    Gtk::Label details_launches;
 
     void load_css()
     {
@@ -273,9 +348,15 @@ private:
             "Usage time: " + get_usage_time(app)
         );
 
+        details_launches.set_text(
+            "Launches: " + get_launch(app)
+        );
+
         set_image(details_icon, app.icon);
 
         details_header.set_visible(true);
+        wallpaper.set_visible(false);
+        dim_overlay.set_visible(false);
     }
 
     void rebuild_app_list(const std::string& query = "")

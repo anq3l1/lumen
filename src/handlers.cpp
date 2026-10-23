@@ -203,7 +203,10 @@ void load_app()
 
     rebuildAppStatistics();
     for (auto& app : applications)
+    {
         app.time = readTimeFromStatistic(app.name);
+        app.launches = readLaunchFromStatistic(app.name);
+    }
 
     std::sort(applications.begin(), applications.end(),
         [](const Application& a, const Application& b) {
@@ -217,16 +220,24 @@ void list_app()
         std::cout << application.name << " time: " << application.time << " s.\n";
 }
 
+void addLaunch(Application& app)
+{
+    ++app.launches;
+    addLaunchesCount(app.name, 1);
+}
+
 void open_app(std::string name)
 {
     const auto found = std::find_if(applications.begin(), applications.end(),
-        [&name](const Application& app) { return app.name == name; });
+        [&name](Application& app) { return app.name == name; });
 
     if (found == applications.end())
     {
         std::cerr << "Lumen: application not found: " << name << '\n';
         return;
     }
+
+    addLaunch(*found);
 
     auto arguments = split_command(found->exec);
     if (arguments.empty())
