@@ -52,7 +52,7 @@ Lumen is currently in an early stage of development.
 Clone the repository:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/lumen.git
+git clone https://github.com/anq3l1/lumen.git
 cd lumen
 ```
 
