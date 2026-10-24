@@ -12,6 +12,7 @@
 #include <chrono>
 #include <ctime>
 #include <iomanip>
+#include <time.h>
 
 #include "gui.hpp"
 #include "handlers.hpp"
@@ -162,6 +163,7 @@ public:
         wallpaper.set_visible(true);
         dim_overlay.set_visible(true);
         clock_label.set_visible(true);
+        date_label.set_visible(true);
         details_header.set_visible(false);
     }
 
@@ -173,9 +175,20 @@ public:
         localtime_r(&now, &local_time);
 
         std::ostringstream output;
-        output << std::put_time(&local_time, "%H:%M:%S");
+        output << std::put_time(&local_time, "%H:%M");
 
         clock_label.set_text(output.str());
+    }
+
+    void update_date()
+    {
+        time_t now = time(nullptr);
+        tm* local = localtime(&now);
+
+        char date[32];
+        strftime(date, sizeof(date), "%d.%m.%Y", local);
+
+        date_label.set_text(date);
     }
 
     MainWindow()
@@ -240,14 +253,28 @@ public:
         clock_label.set_margin(10);
         clock_label.add_css_class("home-clock");
 
+        date_label.set_halign(Gtk::Align::FILL);
+        date_label.set_valign(Gtk::Align::FILL);
+        date_label.set_hexpand(true);
+        date_label.set_vexpand(true);
+        date_label.set_halign(Gtk::Align::FILL);
+        date_label.set_justify(Gtk::Justification::CENTER);
+        date_label.set_xalign(0.5f);
+        date_label.set_yalign(0.55f);
+        date_label.set_margin(10);
+        date_label.add_css_class("date");
+
         content_overlay.add_overlay(clock_label);
+        content_overlay.add_overlay(date_label);
 
         update_clock();
+        update_date();
 
         Glib::signal_timeout().connect(
             [this]()
             {
                 update_clock();
+                update_date();
                 return true;
             },
             1000
@@ -325,6 +352,7 @@ private:
     Gtk::Picture wallpaper;
     Gtk::Box dim_overlay{Gtk::Orientation::VERTICAL};
     Gtk::Label clock_label;
+    Gtk::Label date_label;
 
     Gtk::Box details_header{Gtk::Orientation::HORIZONTAL};
     Gtk::Box details_info{Gtk::Orientation::VERTICAL};
@@ -400,6 +428,7 @@ private:
         wallpaper.set_visible(false);
         dim_overlay.set_visible(false);
         clock_label.set_visible(false);
+        date_label.set_visible(false);
     }
 
     void rebuild_app_list(const std::string& query = "")
